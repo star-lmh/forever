@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.manage.modular.system.mapper.PermissionMapper">
+
+    <resultMap id="permMap" type="com.manage.modular.system.pojo.Permission">
+        <id property="id" column="pid"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="code" column="code"/>
+        <result property="url" column="url"/>
+        <result property="icon" column="icon"/>
+        <result property="menuOrder" column="menu_order"/>
+        <result property="btnClass" column="btn_class"/>
+        <result property="btnStatus" column="btn_status"/>
+        <result property="apiLevel" column="api_level"/>
+        <result property="apiMethod" column="api_method"/>
+        <result property="description" column="description"/>
+        <result property="isVisible" column="is_visible"/>
+        <result property="externalOpen" column="external_open"/>
+    </resultMap>
+
+    <select id="getPermissionByUserId" resultMap="permMap" parameterType="String">
+        select p.id as pid, p.name, p.code from tb_permission p
+        left join tb_role_permission rp on p.id = rp.pid
+        left join tb_role r on r.id = rp.rid
+        left join tb_user_role ur on ur.rid = r.id
+        left join tb_user u on u.id = ur.uid
+        where p.parent_id &lt;&gt; 0 and u.username = #{userId} and p.type = 3
+    </select>
+
+    <select id="getMenuPermissionsByUserId" resultMap="permMap">
+        select p.id as pid, p.name, p.icon, p.url from tb_permission p
+		left join tb_role_permission rp on p.id = rp.pid
+		left join tb_role r on r.id = rp.rid
+		left join tb_user_role ur on ur.rid = r.id
+		left join tb_user u on u.id = ur.uid
+		where 1 = 1 and p.type = 1 and u.username = #{userId} and p.parent_id = #{id}
+    </select>
+
+</mapper>

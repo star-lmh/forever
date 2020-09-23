@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh" xml:lang="zh_CN" xmlns:th="www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="utf-8">
+    <title>用户管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" th:href="@{/layui/css/layui.css}" media="all">
+    <link rel="stylesheet" th:href="@{/easyui/easyui.css}" media="all">
+    <link rel="stylesheet" th:href="@{/easyui/icon.css}" media="all">
+    <link rel="stylesheet" th:href="@{/plugin/zTreeStyle.css}" media="all">
+</head>
+<body>
+
+<div class="easyui-layout">
+    <div region="west" hide="true" split="true" title="用户分类"
+         style="width: 260px;" id="wests" data-options="iconCls:'icon-book'">
+        <div id="listTabs" class="easyui-tabs"
+             data-options="fit:true,border:false,plain:true">
+
+            <div title="按组织机构查看" data-options="iconCls:'icon-organisation'">
+                <div style="vertical-align: middle; padding: 5005px;">
+                    搜索：
+                    <input id="orgKeyword" style="width: 138px;"
+                           class="easyui-textbox"/>
+                    <a href="javascript:void(0);" class="easyui-linkbutton"
+                       iconCls="icon-search" onclick="changeColor('treeDemo', 'name');">搜索</a>
+                </div>
+                <div style="vertical-align: middle; padding-top: 2px;">
+                    <table cellpadding="0" cellspacing="0"
+                           style="width: 96%; border: solid 1px #95B8E7; margin-left: auto; margin-right: auto;">
+                        <tr>
+                            <td>
+                                <a href="javascript:void(0)" id="refreshOrgBtn" class="easyui-linkbutton"
+                                   iconCls="icon-reload" plain="true">刷新</a>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)" id="expandOrgAllBtn"
+                                   class="easyui-linkbutton" iconCls="icon-arrow-out"
+                                   plain="true">展开</a>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)" id="collapseOrgAllBtn"
+                                   class="easyui-linkbutton" iconCls="icon-arrow-in" plain="true">折叠</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <ul id="treeDemo" class="ztree"></ul>
+                <div id="rMenu" class="easyui-menu"
+                     style="width: 120px; z-index: 999;">
+                    <div id="addOrg" data-options="name:'new',iconCls:'icon-role-add'">
+                        增加机构
+                    </div>
+                    <div id="editOrg"
+                         data-options="name:'modify',iconCls:'icon-role-edit'">
+                        修改机构
+                    </div>
+                    <div id="removeOrg"
+                         data-options="name:'del',iconCls:'icon-role-delete'">
+                        删除机构
+                    </div>
+                </div>
+            </div>
+            <div title="按角色查看" data-options="iconCls:'icon-group-key'">
+                <div style="vertical-align: middle; padding-top: 2px;">
+                    <table cellpadding="0" cellspacing="0"
+                           style="width: 96%; border: solid 1px #95B8E7; margin-left: auto; margin-right: auto;">
+                        <tr>
+                            <td>
+                                <a href="javascript:void(0)" class="easyui-linkbutton"
+                                   iconCls="icon-reload" plain="true">刷新</a>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)" id="expandRoleAllBtnAct"
+                                   class="easyui-linkbutton" iconCls="icon-arrow-out"
+                                   plain="true">展开</a>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)" id="collapseRoleAllBtnAct"
+                                   class="easyui-linkbutton" iconCls="icon-arrow-in" plain="true">折叠</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <ul id="treeDemo1" class="ztree"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="body" region="center" hide="true" split="true" title="用户信息"
+         style="background: #eee; overflow-y: hidden"
+         data-options="iconCls:'icon-book'">
+        <!-- 查询条件区域 -->
+        <div id="search_area">
+        </div>
+        <!-- 数据表格区域 -->
+        <table id="tt" fit="true" style="table-layout: fixed; width: 100%"></table>
+        <!-- 表格顶部工具按钮 -->
+        <div id="tt_btn">
+            <div style="margin-bottom: 5px">
+                <shiro:hasPermission name="user:add">
+                    <a href="javascript:void(0)" id="save" class="easyui-linkbutton"
+                       iconCls="icon-add" plain="true" onclick="newUser();">新增</a>
+                </shiro:hasPermission>
+                <shiro:hasPermission name="user:update">
+                    <a href="javascript:void(0)" id="update" class="easyui-linkbutton"
+                       iconCls="icon-edit" plain="true" onclick="editUser();">修改</a>
+                </shiro:hasPermission>
+                <shiro:hasPermission name="user:delete">
+                    <a href="javascript:void(0)" id="delete" class="easyui-linkbutton"
+                       iconCls="icon-remove" plain="true" onclick="removeUser();">删除</a>
+                </shiro:hasPermission>
+                <input id="keyword" class="easyui-textbox"/>
+                <a href="javascript:void(0);" class="easyui-linkbutton"
+                   iconCls="icon-search" onclick="searchByKeyword();">查找</a>
+            </div>
+        </div>
+
+        <div id="dlg" class="easyui-dialog"
+             style="width: 380px; height: 310px; padding: 10px 20px"
+             closed="true" buttons="#dlg-buttons">
+            <div class="ftitle">
+                用户信息录入
+            </div>
+            <form id="fm" class="easyui-form" method="post" data-options="novalidate:true">
+                <div class="fitem">
+                    <label>
+                        账号:
+                    </label>
+                    <input style="width: 200px;" name="userId" id="userId" class="easyui-textbox"
+                           data-options="validType:'userIdvalidate',required:true"/>
+                </div>
+                <div class="fitem">
+                    <label>
+                        姓名:
+                    </label>
+                    <input style="width: 200px;" name="userName" id="userName" class="easyui-textbox"
+                           data-options="required:true"/>
+                </div>
+                <div class="fitem">
+                    <label>
+                        工号:
+                    </label>
+                    <input style="width: 200px;" id="empNo" class="easyui-textbox" data-options="validType:'checkNum'"
+                           name="empNo"/>
+                </div>
+                <div class="fitem">
+                    <label>
+                        邮箱:
+                    </label>
+                    <input style="width: 200px;" class="easyui-textbox" type="text" name="email" validType="email"/>
+                </div>
+                <div class="fitem">
+                    <label>
+                        部门:
+                    </label>
+                    <input style="width: 200px;" class="easyui-combobox" id="oid" name="oid"
+                           url="user/getOrganizationList" valueField="id"
+                           textField="name"/>
+                </div>
+                <div class="fitem">
+                    <label>
+                        状态:
+                    </label>
+                    <input type="radio" name="state" id="state1" value="3"/>启用
+                    <input type="radio" name="state" id="state2" value="-1"/>禁用
+                </div>
+            </form>
+        </div>
+        <div id="dlg-buttons">
+            <a href="javascript:void(0);" class="easyui-linkbutton"
+               iconCls="icon-ok" onclick="saveUser();">保存</a>
+            <a href="javascript:void(0);" class="easyui-linkbutton"
+               iconCls="icon-cancel"
+               onclick="javascript: $('#dlg').dialog('close');">取消</a>
+        </div>
+    </div>
+    <div region="east" hide="true" split="true" title="用户菜单权限"
+         style="width: 250px;" id="west" data-options="iconCls:'icon-book'">
+        <div style="vertical-align: middle; padding-top: 2px;">
+            <table cellpadding="0" cellspacing="0"
+                   style="width: 96%; border: solid 1px #95B8E7; margin-left: auto; margin-right: auto;">
+                <tr>
+                    <td>
+                        <a href="javascript:void(0)" id="refreshMenuBtn" class="easyui-linkbutton"
+                           iconCls="icon-reload" plain="true">刷新</a>
+                    </td>
+                    <td>
+                        <a href="javascript:void(0)" id="expandMenuAllBtn"
+                           class="easyui-linkbutton" iconCls="icon-arrow-out" plain="true">展开</a>
+                    </td>
+                    <td>
+                        <a href="javascript:void(0)" id="collapseMenuAllBtn"
+                           class="easyui-linkbutton" iconCls="icon-arrow-in" plain="true">折叠</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a href="javascript:void(0)" class="easyui-linkbutton"
+                           iconCls="icon-save" onclick="saveUserMenu()" plain="true">保存</a>
+                    </td>
+                    <td colspan="2">
+                        <input type="checkbox" checked="checked" id="showRoleMenuCheckBox" onclick="showRoleMenu(this)"
+                               name="lang" value="01"><span>显示所属角色权限</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <ul id="menuTree" class="ztree"></ul>
+    </div>
+</div>
+
+
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/easyui/jquery.min.js}"></script>
+<script th:src="@{/easyui/jquery.easyui.min.js}"></script>
+<script th:src="@{/plugin/jquery.ztree.core.js}"></script>
+<script th:src="@{/plugin/jquery.ztree.excheck.js}"></script>
+<script th:src="@{/plugin/jquery.ztree.exedit.js}"></script>
+<script th:src="@{/js/user/user.js}"></script>
+<script th:inline="javascript">
+    layui.config({
+        base: '/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'useradmin', 'table'], function () {
+        var $ = layui.$
+            , form = layui.form
+            , table = layui.table;
+
+        //监听搜索
+        form.on('submit(LAY-user-front-search)', function (data) {
+            var field = data.field;
+
+            //执行重载
+            table.reload('LAY-user-manage', {
+                where: field
+            });
+        });
+
+        //事件
+        var active = {
+            batchdel: function () {
+                var checkStatus = table.checkStatus('LAY-user-manage')
+                    , checkData = checkStatus.data; //得到选中的数据
+
+                if (checkData.length === 0) {
+                    return layer.msg('请选择数据');
+                }
+
+                layer.prompt({
+                    formType: 1
+                    , title: '敏感操作，请验证口令'
+                }, function (value, index) {
+                    layer.close(index);
+
+                    layer.confirm('确定删除吗？', function (index) {
+
+                        //执行 Ajax 后重载
+                        /*
+                        admin.req({
+                          url: 'xxx'
+                          //,……
+                        });
+                        */
+                        table.reload('LAY-user-manage');
+                        layer.msg('已删除');
+                    });
+                });
+            }
+            , add: function () {
+                layer.open({
+                    type: 2
+                    , title: '添加用户'
+                    , content: 'userform.html'
+                    , maxmin: true
+                    , area: ['500px', '450px']
+                    , btn: ['确定', '取消']
+                    , yes: function (index, layero) {
+                        var iframeWindow = window['layui-layer-iframe' + index]
+                            , submitID = 'LAY-user-front-submit'
+                            , submit = layero.find('iframe').contents().find('#' + submitID);
+
+                        //监听提交
+                        iframeWindow.layui.form.on('submit(' + submitID + ')', function (data) {
+                            var field = data.field; //获取提交的字段
+
+                            //提交 Ajax 成功后，静态更新表格中的数据
+                            //$.ajax({});
+                            table.reload('LAY-user-front-submit'); //数据刷新
+                            layer.close(index); //关闭弹层
+                        });
+
+                        submit.trigger('click');
+                    }
+                });
+            }
+        };
+
+        $('.layui-btn.layuiadmin-btn-useradmin').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+</script>
+</body>
+</html>
